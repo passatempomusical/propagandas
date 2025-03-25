@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Post</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        canvas { border: 1px solid #000; }
+        input, button { margin: 10px; }
+    </style>
+</head>
+<body>
+
+    <h2>Crie sua imagem personalizada</h2>
+    <input type="file" id="upload" accept="image/*">
+    <input type="text" id="text" placeholder="Digite seu texto">
+    <input type="color" id="color" value="#ffffff">
+    <button onclick="generateImage()">Gerar Imagem</button>
+    <button onclick="downloadImage()">Baixar</button>
+
+    <br>
+    <canvas id="canvas" width="500" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const textInput = document.getElementById("text");
+        const colorInput = document.getElementById("color");
+        const uploadInput = document.getElementById("upload");
+        let img = new Image();
+
+        uploadInput.addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function generateImage() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (img.src) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = colorInput.value;
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(textInput.value, canvas.width / 2, canvas.height - 50);
+        }
+
+        function downloadImage() {
+            const link = document.createElement("a");
+            link.download = "post.png";
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+
+</body>
+</html>
