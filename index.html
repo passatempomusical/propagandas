@@ -3,63 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Post</title>
+    <title>Gerador de Imagens Personalizadas</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        canvas { border: 1px solid #000; }
-        input, button { margin: 10px; }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            border: 1px solid #000;
+            display: block;
+            margin: 20px auto;
+            background-color: #f0f0f0;
+        }
+        input, select, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.6.0/fabric.min.js"></script>
 </head>
 <body>
 
+<div class="container">
     <h2>Crie sua imagem personalizada</h2>
+
+    <!-- Inputs para configuração -->
     <input type="file" id="upload" accept="image/*">
     <input type="text" id="text" placeholder="Digite seu texto">
     <input type="color" id="color" value="#ffffff">
-    <button onclick="generateImage()">Gerar Imagem</button>
-    <button onclick="downloadImage()">Baixar</button>
+    <select id="fontSize">
+        <option value="20">20px</option>
+        <option value="30" selected>30px</option>
+        <option value="40">40px</option>
+        <option value="50">50px</option>
+    </select>
+    <select id="fontFamily">
+        <option value="Arial" selected>Arial</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Courier New">Courier New</option>
+    </select>
+    <button onclick="addText()">Adicionar Texto</button>
+    <button onclick="downloadImage()">Baixar Imagem</button>
 
-    <br>
-    <canvas id="canvas" width="500" height="500"></canvas>
+    <!-- Canvas onde a imagem e o texto serão gerados -->
+    <canvas id="canvas" width="600" height="400"></canvas>
+</div>
 
-    <script>
-        const canvas = document.getElementById("canvas");
-        const ctx = canvas.getContext("2d");
-        const textInput = document.getElementById("text");
-        const colorInput = document.getElementById("color");
-        const uploadInput = document.getElementById("upload");
-        let img = new Image();
+<script>
+    const canvas = new fabric.Canvas('canvas', {
+        backgroundColor: '#f0f0f0',
+        selection: false,
+        isDrawingMode: false
+    });
 
-        uploadInput.addEventListener("change", function(event) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
+    // Carregar imagem
+    document.getElementById('upload').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
 
-            reader.onload = function(e) {
-                img.src = e.target.result;
-                img.onload = function() {
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                };
-            };
-            reader.readAsDataURL(file);
+        reader.onload = function(e) {
+            fabric.Image.fromURL(e.target.result, function(img) {
+                img.scaleToWidth(400);  // Escala a imagem para caber no canvas
+                img.scaleToHeight(400);
+                img.set({ left: 100, top: 100, selectable: true, hasControls: true });
+                canvas.clear();
+                canvas.add(img);
+                canvas.setActiveObject(img);
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Adicionar texto
+    function addText() {
+        const text = new fabric.Text(document.getElementById('text').value, {
+            left: 100,
+            top: 200,
+            fontSize: parseInt(document.getElementById('fontSize').value),
+            fill: document.getElementById('color').value,
+            fontFamily: document.getElementById('fontFamily').value,
+            selectable: true,
+            hasControls: true
         });
+        canvas.add(text);
+        canvas.setActiveObject(text);
+    }
 
-        function generateImage() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (img.src) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = colorInput.value;
-            ctx.font = "30px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(textInput.value, canvas.width / 2, canvas.height - 50);
-        }
-
-        function downloadImage() {
-            const link = document.createElement("a");
-            link.download = "post.png";
-            link.href = canvas.toDataURL();
-            link.click();
-        }
-    </script>
+    // Baixar imagem gerada
+    function downloadImage() {
+        const link = document.createElement('a');
+        link.download = 'imagem_personalizada.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+</script>
 
 </body>
 </html>
